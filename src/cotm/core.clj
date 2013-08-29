@@ -27,7 +27,7 @@
 (defn animate-random [scr cmds]
   (dotimes [n (+ 15 (rand-int 5))] 
     (draw-random scr (rand-nth cmds))
-    (pause 400)))
+    (pause (* n 50))))
 
 ; given 'from' and 'to' points (each a vector of [x y]), generate 
 ; a list of consecutive points between 'from' and 'to'
@@ -47,7 +47,7 @@
         cy (int (/ sy 2))]
   (doseq [[x y] (generate-path (draw-random scr text) [cx cy])]
     (draw-text scr x y text)
-    (pause 100))
+    (pause 80))
   (draw-text scr cx cy text)))
 
 (defn -main [& args]
