@@ -1,6 +1,7 @@
 (ns cotm.core
   (require [lanterna.screen :as s]
-           [clojure.data.json :as json]))
+           [clojure.data.json :as json])
+  (:gen-class))
 
 (defn pause [time]
   (Thread/sleep time))
@@ -28,17 +29,15 @@
     (draw-random scr (rand-nth cmds))
     (pause 400)))
 
-; given two [x y] points ('to' and 'from'), return an [x y] point that is
-; one coordinate closer to the 'to' point than the 'from' point
-; parameter order is reverse from expected for partial application convenience
-(defn delta-move [to from]
-  ; abuse the fact that compare returns -1, 0, 1 for lt, eq, gt
-  (map (fn [p1 p2] (+ p1 (compare p2 p1))) from to))
-
-; given 'from' and 'to' points, generate a list of points between 'from' and 'to'
+; given 'from' and 'to' points (each a vector of [x y]), generate 
+; a list of consecutive points between 'from' and 'to'
 (defn generate-path [from to]
-  (take-while (partial not= to)
-              (iterate (partial delta-move to) from)))
+  (let [move-one (fn [to from] 
+                   ; abuse the fact that compare returns -1, 0, 1 for lt, eq, gt respectively
+                   (map (fn [f t] (+ f (compare t f))) from to))
+        not-finished? (partial not= to)]
+    (take-while not-finished?
+                (iterate (partial move-one to) from))))
 
 ; place the text on the screen in a random position, then 
 ; animate it to the center of the screen
