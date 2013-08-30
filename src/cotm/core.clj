@@ -13,9 +13,10 @@
   (keys (filter second cmds))) 
 
 (defn draw-text [scr x y text]
-  (s/clear scr)
-  (s/put-string scr x y text)
-  (s/redraw scr))
+  (doto scr
+    (s/clear)
+    (s/put-string x y text)
+    (s/redraw)))
 
 ; draw 'text' to a random point on the screen, making sure 
 ; the text won't run off the end
