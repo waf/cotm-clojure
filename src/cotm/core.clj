@@ -3,6 +3,8 @@
            [clojure.data.json :as json])
   (:gen-class))
 
+(def cmd-file "resources/commands.json")
+
 (defn pause [time]
   (Thread/sleep time))
 
@@ -39,23 +41,37 @@
     (take-while not-finished?
                 (iterate (partial move-one to) from))))
 
-; place the text on the screen in a random position, then 
-; animate it to the center of the screen
-(defn animate-random-to-center [scr text]
+(defn get-centered [scr text]
   (let [[sx sy] (s/get-size scr)
         cx (int (/ (- sx (count text)) 2))
         cy (int (/ sy 2))]
-  (doseq [[x y] (generate-path (draw-random scr text) [cx cy])]
-    (draw-text scr x y text)
-    (pause 80))
-  (draw-text scr cx cy text)))
+    [cx cy]))
+
+; place the text on the screen in a random position, then 
+; animate it to the center of the screen
+(defn animate-random-to-center [scr text]
+  (let [[cx cy] (get-centered scr text)]
+    (doseq [[x y] (generate-path (draw-random scr text) [cx cy])]
+      (draw-text scr x y text)
+      (pause 80))
+    (draw-text scr cx cy text)))
+
+(defn flash [scr text times]
+  (let [[cx cy] (get-centered scr text)]
+    (dotimes [n times]
+      (s/clear scr) (s/redraw scr)
+      (pause 400)
+      (s/put-string scr cx cy text) (s/redraw scr) 
+      (pause 400))))
 
 (defn -main [& args]
   (let [scr (s/get-screen)
-        cmds (json/read-str (slurp "resources/commands.json"))
+        cmds (json/read-str (slurp cmd-file))
         actives (get-active-commands cmds)
         chosen (rand-nth actives)]
     (s/in-screen scr
                  (animate-random scr (remove #{chosen} actives))
                  (animate-random-to-center scr chosen)
+                 (flash scr chosen 3)
+                 (spit cmd-file (json/write-str (assoc cmds chosen false)))
                  (s/get-key-blocking scr))))
