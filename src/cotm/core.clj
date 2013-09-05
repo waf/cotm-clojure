@@ -51,11 +51,12 @@
 ; place the text on the screen in a random position, then 
 ; animate it to the center of the screen
 (defn animate-random-to-center [scr text]
-  (let [[cx cy] (get-centered scr text)]
-    (doseq [[x y] (generate-path (draw-random scr text) [cx cy])]
+  (let [[ix iy] (draw-random scr text)
+        [cx cy] (get-centered scr text)]
+    (pause 1000)
+    (doseq [[x y] (generate-path [ix iy] [cx cy])]
       (draw-text scr x y text)
-      (pause 80))
-    (draw-text scr cx cy text)))
+      (pause 80))))
 
 (defn flash [scr text times]
   (let [[cx cy] (get-centered scr text)]
@@ -66,7 +67,7 @@
       (pause 400))))
 
 (defn -main [& args]
-  (let [scr (s/get-screen)
+  (let [scr (s/get-screen :unix)
         cmds (json/read-str (slurp cmd-file))
         actives (get-active-commands cmds)
         chosen (rand-nth actives)]
